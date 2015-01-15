@@ -585,6 +585,7 @@ class Background(BasicStatement, Replayable):
     def __init__(self, filename, line, keyword, name, steps=None):
         super(Background, self).__init__(filename, line, keyword, name)
         self.steps = steps or []
+        self.should_skip = False
 
     def __repr__(self):
         return '<Background "%s">' % self.name
@@ -599,6 +600,10 @@ class Background(BasicStatement, Replayable):
             duration += step.duration
         return duration
 
+    def skip(self):
+        """Skip executing this background
+        """
+        self.should_skip = True
 
 class Scenario(TagAndStatusStatement, Replayable):
     '''A `scenario`_ parsed from a *feature file*.
@@ -733,7 +738,10 @@ class Scenario(TagAndStatusStatement, Replayable):
         """Compute the status of the scenario from its steps.
         :return: Computed status (as string).
         """
-        for step in self.all_steps:
+        steps = self.all_steps
+        if self.background and self.background.should_skip:
+            steps = self.steps
+        for step in self.steps:
             if step.status == 'undefined':
                 if self.was_dry_run:
                     # -- SPECIAL CASE: In dry-run with undefined-step discovery
@@ -916,10 +924,24 @@ class Scenario(TagAndStatusStatement, Replayable):
 
         # Run background steps & hooks
         if self.background:
-            runner.run_hook('before_background', runner.context, self)
-            failed, run_steps = self._run_steps(self.background_steps, run_steps,
-                                                runner, failed, dry_run_scenario)
-            runner.run_hook('after_background', runner.context, self)
+            if not runner.config.dry_run and run_scenario:
+                runner.run_hook('before_background', runner.context, self.background)
+            if self.background.should_skip:
+                if run_scenario or runner.config.show_skipped:
+                    for s in self.background_steps:
+                        s.status = 'skipped'
+                        for formatter in runner.formatters:
+                            step_match = step_registry.registry.find_match(s)
+                            if not step_match:
+                                formatter.match(NoMatch())
+                            else:
+                                formatter.match(step_match)
+                            formatter.result(s)
+            else:
+                failed, run_steps = self._run_steps(self.background_steps, run_steps,
+                                                    runner, failed, dry_run_scenario)
+            if not runner.config.dry_run and run_scenario:
+                runner.run_hook('after_background', runner.context, self.background)
         
         # Run main steps
         failed, run_steps = self._run_steps(self.steps, run_steps, runner,
