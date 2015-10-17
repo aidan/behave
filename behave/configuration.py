@@ -83,6 +83,10 @@ options = [
      dict(action='store_true',
           help="Invokes formatters without executing the steps.")),
 
+    (('--super-cache',),
+     dict(action='store_true',
+          help="Caches common state between scenarios.")),
+
     (('-D', '--define'),
      dict(dest='userdata_defines', type=parse_user_define, action='append',
           metavar="NAME=VALUE",
