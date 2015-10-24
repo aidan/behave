@@ -85,6 +85,7 @@ options = [
 
     (('--super-cache',),
      dict(action='store_true',
+          dest="super_cache",
           help="Caches common state between scenarios.")),
 
     (('-D', '--define'),

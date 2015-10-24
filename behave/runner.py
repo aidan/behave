@@ -16,6 +16,7 @@ from behave.formatter._registry import make_formatters
 from behave.configuration import ConfigError
 from behave.log_capture import LoggingCapture
 from behave.runner_util import collect_feature_locations, parse_features
+from behave.super_cache import super_cache_parser
 
 
 class ContextMaskWarning(UserWarning):
@@ -481,6 +482,10 @@ class ModelRunner(object):
         run_feature = not self.aborted
         failed_count = 0
         undefined_steps_initial_size = len(self.undefined_steps)
+
+        if self.config.super_cache:
+            features = super_cache_parser(features)
+
         for feature in features:
             if run_feature:
                 try:

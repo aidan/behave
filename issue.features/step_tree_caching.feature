@@ -44,7 +44,7 @@ Feature: Issue #290: Call before/after_background_hooks when running backgrounds
             And second step succeeds
             Then second check is ok
         """
-    When I run "behave -f plain --super-cache --no-capture features/step_tree_caching.feature"
+    When I run "behave -f plain --super-cache features/step_tree_caching.feature"
     Then it should pass
     And the command output should contain:
         """
