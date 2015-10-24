@@ -28,7 +28,7 @@ def super_cache_parser(features):
             cache_step = Step(u"", u"", u"when", u"when", u"the system state is cached to %s" % index)
             first_scenario, step_index = runs.pop(0)
 
-            first_scenario.steps.insert(step_index, cache_step)
+            first_scenario.steps.insert(step_index + 1, cache_step)
 
             # Replace the tree in subsequent scenarios up to this point with a cache restore
             restore_step = Step(u"", u"", u"when", u"when", u"the system state is restored from cache %s" % index)
