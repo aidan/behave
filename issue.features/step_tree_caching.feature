@@ -5,17 +5,17 @@ Feature: Issue #290: Call before/after_background_hooks when running backgrounds
 
   Background:
     Given a new working directory
-    And a file named "features/environment.py" with
-        """
-        def cache_set(context, key):
-            print ('caching state for %s' % key)
-
-        def cache_put(context, key):
-            print ('caching state for %s' % key)
-        """
     And a file named "features/steps/steps.py" with:
         """
         from behave import step
+
+        @when('the system state is cached to {key}')
+        def cache_set(context, key):
+            print ('caching state for %s' % key)
+        
+        @when('the system state is restored from cache {key}')
+        def cache_put(context, key):
+            print ('caching state for %s' % key)
 
         @step('a background step')
         def background_step(context):
@@ -63,3 +63,6 @@ Feature: Issue #290: Call before/after_background_hooks when running backgrounds
         first check
         Then first check is ok ... passed
         """
+
+  # Todo scenarios
+  Scenario: cache with an and step in the run
