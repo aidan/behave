@@ -199,5 +199,68 @@ Feature: Issue #290: Call before/after_background_hooks when running backgrounds
       first check
           Then first check is ok ... passed
     """
+
+  Scenario: feature file with mulitple sets of common steps out of order
+    Given a file named "features/step_tree_caching.feature" with
+        """
+        Feature:
+
+          Scenario: The first scenario
+            Given first step succeeds
+            And second step succeeds
+            When third step succeeds
+            Then fourth check is ok
+
+          Scenario: The second scenario
+            Given first step succeeds
+            And second step succeeds
+            When third step succeeds
+            And fourth step succeeds
+            Then fifth check is ok
+
+          Scenario: The third scenario
+            Given first step succeeds
+            When second step succeeds
+            Then third check is ok
+
+        """
+    When I run "behave -f plain --no-capture --super-cache features/step_tree_caching.feature"
+    Then it should pass
+    And the command output should contain:
+    """
+        Scenario: The first scenario
+      first step
+          Given first step succeeds ... passed
+      caching state for 3390203783646515014
+          when the system state is cached to 3390203783646515014 ... passed
+      second step
+          And second step succeeds ... passed
+      third step
+          When third step succeeds ... passed
+      caching state for 3340107766547310146
+          when the system state is cached to 3340107766547310146 ... passed
+      fourth check
+          Then fourth check is ok ... passed
+      
+        Scenario: The second scenario
+          Given first step succeeds ... skipped
+          And second step succeeds ... skipped
+          When third step succeeds ... skipped
+      restoring state from 3340107766547310146
+          when the system state is restored from cache 3340107766547310146 ... passed
+      fourth step
+          And fourth step succeeds ... passed
+      fifth check
+          Then fifth check is ok ... passed
+      
+        Scenario: The third scenario
+          Given first step succeeds ... skipped
+      restoring state from 3390203783646515014
+          when the system state is restored from cache 3390203783646515014 ... passed
+      second step
+          When second step succeeds ... passed
+      third check
+          Then third check is ok ... passed
+    """
     
   # Scenario: feature file scenario with background but no common step
