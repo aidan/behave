@@ -30,12 +30,14 @@ def super_cache_parser(features):
             first_scenario.steps.insert(step_index + 1, cache_step)
 
             # Copy the background as we'll mark the others as skippable
-            first_scenario.background = copy(first_scenario.background)
+            if first_scenario.background:
+                first_scenario.background = copy(first_scenario.background)
 
             # Skip the steps in subsequent scenarios up to the common point and add a cache restore
             restore_step = Step(u"", u"", u"when", u"when", u"the system state is restored from cache %s" % index)
             for other_scenario, step_index in runs:
-                other_scenario.background.skip()
+                if other_scenario.background:
+                    other_scenario.background.skip()
                 for i in range(step_index + 1):
                     other_scenario.steps[i].skip()
                 other_scenario.steps.insert(step_index + 1, restore_step)
