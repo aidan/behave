@@ -8,12 +8,16 @@ def super_cache_parser(features):
     for feature in features:
         for scenario in feature.scenarios:
             step_tree = []
+            previous_run = None
             for i, step in enumerate(scenario.steps):
                 step_key = (step.step_type + step.name + str(hash(step.text)) + str(hash(step.table)))
                 step_tree.append(step_key)
                 step_index = hash(''.join(step_tree))
                 item = (scenario, i)
                 if step_index in step_counts:
+                    if previous_run:
+                        step_counts[previous_run].pop(-1)
+                    previous_run = step_index
                     step_counts[step_index].append(item)
                 else:
                     step_counts[step_index] = [item]
