@@ -15,7 +15,7 @@ Feature: Issue #290: Call before/after_background_hooks when running backgrounds
         
         @when('the system state is restored from cache {key}')
         def cache_put(context, key):
-            print ('caching state for %s' % key)
+            print ('restoring state from %s' % key)
 
         @step('a background step')
         def background_step(context):
@@ -42,30 +42,35 @@ Feature: Issue #290: Call before/after_background_hooks when running backgrounds
           Scenario: The second scenario
             When first step succeeds
             And second step succeeds
-            Then second check is ok
+            Then first check is ok
+            And second check is ok
         """
     When I run "behave -f plain --no-capture --super-cache features/step_tree_caching.feature"
     Then it should pass
     And the command output should contain:
-        """
-        background_step
+    """
+      Scenario: The first scenario
+    background_step
         Given a background step ... passed
-        first step
+    first step
         When first step succeeds ... passed
-        caching state for -3561532529679889876
+    caching state for -3561532529679889876
         when the system state is cached to -3561532529679889876 ... passed
-        first check
+    first check
         Then first check is ok ... passed
-        Scenario: The second scenario
-        background_step
-        Given a background step ... passed
-        caching state for -3561532529679889876
+      
+      Scenario: The second scenario
+        Given a background step ... skipped
+        When first step succeeds ... skipped
+    restoring state from -3561532529679889876
         when the system state is restored from cache -3561532529679889876 ... passed
-        second step
+    second step
         And second step succeeds ... passed
-        second check
-        Then second check is ok ... passed
-        """
+    first check
+        Then first check is ok ... passed
+    second check
+        And second check is ok ... passed
+    """
 
   # Todo scenarios
-  Scenario: cache with an and step in the run
+  #Scenario: cache with an and step in the run

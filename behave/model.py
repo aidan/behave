@@ -1421,6 +1421,7 @@ class Step(BasicStatement, Replayable):
         self.exception = None
         self.exc_traceback = None
         self.error_message = None
+        self.should_skip = False
 
     def reset(self):
         '''Reset temporary runtime data to reach clean state again.'''
@@ -1473,6 +1474,11 @@ class Step(BasicStatement, Replayable):
                     formatter.match(NoMatch())
 
             self.status = 'undefined'
+
+        if self.should_skip:
+            self.status = 'skipped'
+
+        if match is None or self.should_skip:
             if not quiet:
                 for formatter in runner.formatters:
                     formatter.result(self)
@@ -1553,6 +1559,10 @@ class Step(BasicStatement, Replayable):
         runner.run_hook('after_step', runner.context, self)
         return keep_going
 
+    def skip(self):
+        """Skip executing this step
+        """
+        self.should_skip = True
 
 class Table(Replayable):
     '''A `table`_ extracted from a *feature file*.
