@@ -27,7 +27,7 @@ Feature: Issue #290: Call before/after_background_hooks when running backgrounds
             print ('%s %s' % (step_name, type))
         """
 
-  Scenario: 
+  Scenario: Cache background and common 1st step
     Given a file named "features/step_tree_caching.feature" with
         """
         Feature:
@@ -72,6 +72,53 @@ Feature: Issue #290: Call before/after_background_hooks when running backgrounds
         And second check is ok ... passed
     """
 
-  # Todo scenarios
-  #Scenario: cache with an and step in the run
-  #Scenario: cache scenario with no background
+  Scenario: Scenarios with an and step right after the cacheable step but not a when
+    Given a file named "features/step_tree_caching.feature" with
+        """
+        Feature:
+
+          Background:
+            Given a background step
+
+          Scenario: The first scenario
+            Given first step succeeds
+            When second step succeeds
+            Then first check is ok
+
+          Scenario: The second scenario
+            Given first step succeeds
+            And second step succeeds
+            When third step succeeds
+            Then first check is ok
+        """
+    When I run "behave -f plain --no-capture --super-cache features/step_tree_caching.feature"
+    Then it should pass
+    And the command output should contain:
+    """
+      Scenario: The first scenario
+    background_step
+        Given a background step ... passed
+    first step
+        Given first step succeeds ... passed
+    caching state for 3390203783646515014
+        when the system state is cached to 3390203783646515014 ... passed
+    second step
+        When second step succeeds ... passed
+    first check
+        Then first check is ok ... passed
+      
+      Scenario: The second scenario
+        Given a background step ... skipped
+        Given first step succeeds ... skipped
+    restoring state from 3390203783646515014
+        when the system state is restored from cache 3390203783646515014 ... passed
+    second step
+        And second step succeeds ... passed
+    third step
+        When third step succeeds ... passed
+    first check
+        Then first check is ok ... passed
+    """
+    
+  # Scenario: feature file with no background  
+  # Scenario: feature file scenario with background but no common step
