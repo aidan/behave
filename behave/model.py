@@ -1482,8 +1482,10 @@ class Step(BasicStatement, Replayable):
             if not quiet:
                 for formatter in runner.formatters:
                     formatter.result(self)
-
-            return False
+            if match is None:
+                return False
+            else:
+                return True
 
         keep_going = True
 

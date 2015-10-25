@@ -1,6 +1,5 @@
+from copy import copy
 from model import Step
-import pprint
-pp = pprint.PrettyPrinter(indent=4)
 
 def super_cache_parser(features):
     # Build a map of the suite, identifying any common runs
@@ -24,17 +23,21 @@ def super_cache_parser(features):
     # key
     for index, runs in step_counts.items():
         if len(runs) > 1:
-            # Add a cache step to the first scenario
+            # Add a cache step to the first scenario at the right point
             cache_step = Step(u"", u"", u"when", u"when", u"the system state is cached to %s" % index)
             first_scenario, step_index = runs.pop(0)
 
             first_scenario.steps.insert(step_index + 1, cache_step)
 
-            # Replace the tree in subsequent scenarios up to this point with a cache restore
+            # Copy the background as we'll mark the others as skippable
+            first_scenario.background = copy(first_scenario.background)
+
+            # Skip the steps in subsequent scenarios up to the common point and add a cache restore
             restore_step = Step(u"", u"", u"when", u"when", u"the system state is restored from cache %s" % index)
             for other_scenario, step_index in runs:
                 other_scenario.background.skip()
-                for i in range(step_index):
+                for i in range(step_index + 1):
                     other_scenario.steps[i].skip()
                 other_scenario.steps.insert(step_index + 1, restore_step)
+
     return features
