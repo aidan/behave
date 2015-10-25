@@ -23,6 +23,7 @@ def super_cache_parser(features):
     # key
     for index, runs in step_counts.items():
         if len(runs) > 1:
+            print runs
             # Add a cache step to the first scenario at the right point
             cache_step = Step(u"", u"", u"when", u"when", u"the system state is cached to %s" % index)
             first_scenario, step_index = runs.pop(0)
