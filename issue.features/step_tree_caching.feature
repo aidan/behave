@@ -120,5 +120,43 @@ Feature: Issue #290: Call before/after_background_hooks when running backgrounds
         Then first check is ok ... passed
     """
     
-  # Scenario: feature file with no background  
+  Scenario: feature file with no background  
+    Given a file named "features/step_tree_caching.feature" with
+        """
+        Feature:
+
+          Scenario: The first scenario
+            Given first step succeeds
+            When second step succeeds
+            Then first check is ok
+
+          Scenario: The second scenario
+            Given first step succeeds
+            When third step succeeds
+            Then fourth check is ok
+        """
+    When I run "behave -f plain --no-capture --super-cache features/step_tree_caching.feature"
+    Then it should pass
+    And the command output should contain:
+    """
+      Scenario: The first scenario
+    first step
+        Given first step succeeds ... passed
+    caching state for 3390203783646515014
+        when the system state is cached to 3390203783646515014 ... passed
+    second step
+        When second step succeeds ... passed
+    first check
+        Then first check is ok ... passed
+      
+      Scenario: The second scenario
+        Given first step succeeds ... skipped
+    restoring state from 3390203783646515014
+        when the system state is restored from cache 3390203783646515014 ... passed
+    third step
+        When third step succeeds ... passed
+    fourth check
+        Then fourth check is ok ... passed
+    """
+    
   # Scenario: feature file scenario with background but no common step
