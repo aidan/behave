@@ -49,27 +49,29 @@ Feature: Issue #290: Call before/after_background_hooks when running backgrounds
     Then it should pass
     And the command output should contain:
     """
-      Scenario: The first scenario
-    background_step
-        Given a background step ... passed
-    first step
-        When first step succeeds ... passed
-    caching state for -3561532529679889876
-        when the system state is cached to -3561532529679889876 ... passed
-    first check
-        Then first check is ok ... passed
+        Scenario: The first scenario
+      background_step
+          Given a background step ... passed
+      caching state for -6776314666080932771
+          when the system state is cached to -6776314666080932771 ... passed
+      first step
+          When first step succeeds ... passed
+      caching state for -3561532529679889876
+          when the system state is cached to -3561532529679889876 ... passed
+      first check
+          Then first check is ok ... passed
       
-      Scenario: The second scenario
-        Given a background step ... skipped
-        When first step succeeds ... skipped
-    restoring state from -3561532529679889876
-        when the system state is restored from cache -3561532529679889876 ... passed
-    second step
-        And second step succeeds ... passed
-    first check
-        Then first check is ok ... passed
-    second check
-        And second check is ok ... passed
+        Scenario: The second scenario
+          Given a background step ... skipped
+          When first step succeeds ... skipped
+      restoring state from -3561532529679889876
+          when the system state is restored from cache -3561532529679889876 ... passed
+      second step
+          And second step succeeds ... passed
+      first check
+          Then first check is ok ... passed
+      second check
+          And second check is ok ... passed
     """
 
   Scenario: Scenarios with an and step right after the cacheable step but not a when
@@ -98,6 +100,8 @@ Feature: Issue #290: Call before/after_background_hooks when running backgrounds
       Scenario: The first scenario
     background_step
         Given a background step ... passed
+    caching state for -6776314666080932771
+        when the system state is cached to -6776314666080932771 ... passed
     first step
         Given first step succeeds ... passed
     caching state for 3390203783646515014
@@ -262,5 +266,50 @@ Feature: Issue #290: Call before/after_background_hooks when running backgrounds
       third check
           Then third check is ok ... passed
     """
-    
-  # Scenario: feature file scenario with background but no common step
+ 
+  @thisone
+  Scenario: feature file scenario with background but no common step
+    Given a file named "features/step_tree_caching.feature" with
+        """
+        Feature:
+          
+          Background:
+            Given a background step
+
+          Scenario: The first scenario
+            Given first step succeeds
+            When second step succeeds
+            Then third check is ok
+
+          Scenario: The second scenario
+            Given fourth step succeeds
+            When fifth step succeeds
+            Then sixth check is ok
+        """
+    When I run "behave -f plain --no-capture --super-cache features/step_tree_caching.feature"
+    Then it should pass
+    And the command output should contain:
+    """
+        Scenario: The first scenario
+      background_step
+          Given a background step ... passed
+      caching state for -6776314666080932771
+          when the system state is cached to -6776314666080932771 ... passed
+      first step
+          Given first step succeeds ... passed
+      second step
+          When second step succeeds ... passed
+      third check
+          Then third check is ok ... passed
+      
+        Scenario: The second scenario
+          Given a background step ... skipped
+      restoring state from -6776314666080932771
+          when the system state is restored from cache -6776314666080932771 ... passed
+      fourth step
+          Given fourth step succeeds ... passed
+      fifth step
+          When fifth step succeeds ... passed
+      sixth check
+          Then sixth check is ok ... passed
+    """
