@@ -484,7 +484,7 @@ class ModelRunner(object):
         undefined_steps_initial_size = len(self.undefined_steps)
 
         if self.config.super_cache:
-            features = super_cache_parser(features)
+            features = super_cache_parser(features, self.config)
 
         for feature in features:
             if run_feature:

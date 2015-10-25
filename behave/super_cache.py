@@ -1,17 +1,24 @@
 from copy import copy
 from model import Step
 
-def super_cache_parser(features):
+def super_cache_parser(features, config):
     # Build a map of the suite, identifying any common runs
     step_counts = {}
 
     for feature in features:
         first_scenario = True
         for scenario in feature.scenarios:
+            if not scenario.should_run(config):
+                continue
             step_tree = []
             previous_run = None
             for i, step in enumerate(scenario.steps):
-                step_key = (step.step_type + step.name + str(hash(step.text)) + str(hash(step.table)))
+                table_text = ''
+                if step.table:
+                    for row in step.table:
+                        for cell in row:
+                            table_text += cell
+                step_key = (step.step_type + step.name + table_text)
                 step_tree.append(step_key)
                 step_index = hash(''.join(step_tree))
                 item = (scenario, i)

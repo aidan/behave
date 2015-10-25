@@ -267,7 +267,6 @@ Feature: Issue #290: Call before/after_background_hooks when running backgrounds
           Then third check is ok ... passed
     """
  
-  @thisone
   Scenario: feature file scenario with background but no common step
     Given a file named "features/step_tree_caching.feature" with
         """
@@ -312,4 +311,60 @@ Feature: Issue #290: Call before/after_background_hooks when running backgrounds
           When fifth step succeeds ... passed
       sixth check
           Then sixth check is ok ... passed
+    """
+
+  @thisone
+  Scenario: 3 scenarios with 2 common table steps
+    Given a file named "features/step_tree_caching.feature" with
+        """
+        Feature:
+
+          Scenario: The first scenario
+            Given first step succeeds
+            | key | value |
+            | a   |     1 |
+            Then second check is ok
+
+          Scenario: The second scenario
+            Given first step succeeds
+            | key | value |
+            | a   |     2 |
+            Then second check is ok
+
+          Scenario: The third scenario
+            Given first step succeeds
+            | key | value |
+            | a   |     1 |
+            Then third check is ok
+        """
+    When I run "behave -f plain --no-capture --super-cache features/step_tree_caching.feature"
+    Then it should pass
+    And the command output should contain:
+    """
+        Scenario: The first scenario
+      first step
+          Given first step succeeds ... passed
+            | key | value |
+            | a   | 1     |
+      caching state for -8721094047193514466
+          when the system state is cached to -8721094047193514466 ... passed
+      second check
+          Then second check is ok ... passed
+      
+        Scenario: The second scenario
+      first step
+          Given first step succeeds ... passed
+            | key | value |
+            | a   | 2     |
+      second check
+          Then second check is ok ... passed
+      
+        Scenario: The third scenario
+          Given first step succeeds ... skipped
+            | key | value |
+            | a   | 1     |
+      restoring state from -8721094047193514466
+          when the system state is restored from cache -8721094047193514466 ... passed
+      third check
+          Then third check is ok ... passed
     """
